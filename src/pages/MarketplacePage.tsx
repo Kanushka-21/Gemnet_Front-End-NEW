@@ -8,6 +8,9 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
+// Utilities
+import { getPlaceholderImage, handleImageError } from '@/utils/placeholderImages';
+
 // Helper function to calculate days until auction end
 const calculateDaysRemaining = (endDateStr: string): number => {
   const endDate = new Date(endDateStr);
@@ -94,15 +97,11 @@ const GemCard: React.FC<GemCardProps> = ({ gem, onViewDetails, onToggleWatchlist
       className="bg-white rounded-xl shadow-md overflow-hidden border border-secondary-200"
     >
       {/* Image */}
-      <div className="relative h-48 bg-secondary-100">
-        <img 
+      <div className="relative h-48 bg-secondary-100">        <img 
           src={gem.image} 
           alt={gem.name}
           className="w-full h-full object-cover" 
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/300x200?text=Gem+Image";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '300x200')}
         />
         {gem.certified && (
           <div className="absolute top-2 right-2 bg-green-500 text-white text-xs py-1 px-2 rounded-full">
@@ -318,11 +317,10 @@ const MarketplacePage: React.FC = () => {
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      const mockGems = [
-        {
+      const mockGems = [        {
           id: 1,
           name: "Premium Blue Sapphire",
-          image: "https://via.placeholder.com/300x200?text=Blue+Sapphire",
+          image: getPlaceholderImage('blue sapphire'),
           currentBid: 4500,
           minimumBid: 4650,
           carat: "3.5",
@@ -343,7 +341,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 2,
           name: "Natural Ruby",
-          image: "https://via.placeholder.com/300x200?text=Ruby",
+          image: getPlaceholderImage('ruby'),
           currentBid: 5800,
           minimumBid: 5950,
           carat: "2.8",
@@ -364,7 +362,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 3,
           name: "Yellow Topaz",
-          image: "https://via.placeholder.com/300x200?text=Yellow+Topaz",
+          image: getPlaceholderImage('yellow topaz'),
           currentBid: 2100,
           minimumBid: 2250,
           carat: "5.2",
@@ -385,7 +383,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 4,
           name: "Green Emerald",
-          image: "https://via.placeholder.com/300x200?text=Emerald",
+          image: getPlaceholderImage('emerald'),
           currentBid: 6200,
           minimumBid: 6400,
           carat: "1.75",
@@ -406,7 +404,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 5,
           name: "Pink Sapphire",
-          image: "https://via.placeholder.com/300x200?text=Pink+Sapphire",
+          image: getPlaceholderImage('gem'),
           currentBid: 3800,
           minimumBid: 3950,
           carat: "2.2",
@@ -427,7 +425,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 6,
           name: "Purple Amethyst",
-          image: "https://via.placeholder.com/300x200?text=Amethyst",
+          image: getPlaceholderImage('gem'),
           currentBid: 980,
           minimumBid: 1050,
           carat: "8.5",
@@ -448,7 +446,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 7,
           name: "Blue Aquamarine",
-          image: "https://via.placeholder.com/300x200?text=Aquamarine",
+          image: getPlaceholderImage('gem'),
           currentBid: 2900,
           minimumBid: 3050,
           carat: "4.8",
@@ -469,7 +467,7 @@ const MarketplacePage: React.FC = () => {
         {
           id: 8,
           name: "Star Ruby",
-          image: "https://via.placeholder.com/300x200?text=Star+Ruby",
+          image: getPlaceholderImage('ruby'),
           currentBid: 7500,
           minimumBid: 7700,
           carat: "3.2",
@@ -753,13 +751,9 @@ const MarketplacePage: React.FC = () => {
                     {/* Gem Image */}
                     <div className="relative rounded-lg overflow-hidden mb-6 border border-secondary-200">
                       <img 
-                        src={selectedGem.image} 
-                        alt={selectedGem.name} 
+                        src={selectedGem.image}                        alt={selectedGem.name} 
                         className="w-full h-64 object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://via.placeholder.com/400x300?text=Gem+Image";
-                        }}
+                        onError={(e) => handleImageError(e, 'gem', '400x300')}
                       />
                       {selectedGem.certified && (
                         <div className="absolute top-2 right-2 bg-green-500 text-white text-xs py-1 px-2 rounded-full flex items-center">

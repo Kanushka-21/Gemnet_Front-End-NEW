@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 
+// Block placeholder image requests early
+import './utils/placeholderBlocker'
+
 // Import AuthProvider
 import { AuthProvider } from './context/AuthContext'
 

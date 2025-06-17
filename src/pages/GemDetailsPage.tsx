@@ -29,6 +29,9 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
+// Utilities
+import { getPlaceholderImage, handleImageError } from '@/utils/placeholderImages';
+
 // Types
 interface GemDetails {
   id: string;
@@ -84,15 +87,11 @@ const ImageGallery: React.FC<{images: string[]}> = ({ images }) => {
 
   return (
     <div className="relative rounded-xl overflow-hidden bg-secondary-100 mb-4">
-      <div className="aspect-w-4 aspect-h-3 w-full">
-        <img
-          src={images[currentIndex] || "https://via.placeholder.com/800x600?text=Gem+Image"}
+      <div className="aspect-w-4 aspect-h-3 w-full">        <img
+          src={images[currentIndex] || getPlaceholderImage('gem', '800x600')}
           alt="Gem"
           className="w-full h-full object-contain"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/800x600?text=Gem+Image";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '800x600')}
         />
       </div>
       
@@ -334,11 +333,10 @@ const GemDetailsPage: React.FC = () => {
         },
         timeLeft: '3 days, 4 hours',
         origin: 'Ratnapura, Sri Lanka',
-        description: 'This exquisite Blue Ceylon Sapphire features a stunning deep blue color characteristic of the finest sapphires from Sri Lanka. The gem has been expertly cut to maximize its brilliance and color saturation. With excellent clarity and a vibrant hue, this sapphire represents a premium example of Ceylon sapphires.',
-        images: [
-          'https://via.placeholder.com/800x600?text=Blue+Sapphire+1',
-          'https://via.placeholder.com/800x600?text=Blue+Sapphire+2',
-          'https://via.placeholder.com/800x600?text=Blue+Sapphire+3',
+        description: 'This exquisite Blue Ceylon Sapphire features a stunning deep blue color characteristic of the finest sapphires from Sri Lanka. The gem has been expertly cut to maximize its brilliance and color saturation. With excellent clarity and a vibrant hue, this sapphire represents a premium example of Ceylon sapphires.',        images: [
+          getPlaceholderImage('blue sapphire', '800x600'),
+          getPlaceholderImage('blue sapphire', '800x600'),
+          getPlaceholderImage('blue sapphire', '800x600'),
         ],
         auctionEndTime: '2025-06-20T15:00:00',
         verificationStatus: 'verified'

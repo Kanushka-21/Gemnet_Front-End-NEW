@@ -23,6 +23,9 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
+// Utilities
+import { getPlaceholderImage, handleImageError } from '@/utils/placeholderImages';
+
 // Dashboard Components
 const StatCard: React.FC<{
   title: string;
@@ -80,10 +83,7 @@ const ActiveBidCard: React.FC<{
           src={image}
           alt={gemName}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/100?text=Gem";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '100x100')}
         />
       </div>
       <div className="p-4 flex-grow">
@@ -150,10 +150,7 @@ const WonBidCard: React.FC<{
           src={image}
           alt={gemName}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/100?text=Gem";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '100x100')}
         />
       </div>
       <div className="p-4 flex-grow">
@@ -259,16 +256,12 @@ const WatchlistItem: React.FC<{
       whileHover={{ y: -2 }}
       className="flex items-center p-3 hover:bg-primary-50 rounded-lg cursor-pointer"
       onClick={() => navigate(`/gem/${id}`)}
-    >
-      <div className="w-14 h-14 bg-secondary-100 rounded-lg overflow-hidden mr-3">
+    >      <div className="w-14 h-14 bg-secondary-100 rounded-lg overflow-hidden mr-3">
         <img
           src={image}
           alt={gemName}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/50?text=Gem";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '50x50')}
         />
       </div>
       <div className="flex-grow">
@@ -296,14 +289,13 @@ const BuyerDashboard: React.FC = () => {
     // Simulate data loading
     setTimeout(() => {
       setActiveBids([
-        {
-          id: '1',
+        {          id: '1',
           gemName: 'Blue Sapphire',
           currentBid: 1200,
           yourBid: 1200,
           endTime: '2025-05-08',
           status: 'highest',
-          image: 'https://via.placeholder.com/100'
+          image: getPlaceholderImage('gem', 'blue sapphire')
         },
         {
           id: '2',
@@ -312,18 +304,17 @@ const BuyerDashboard: React.FC = () => {
           yourBid: 800,
           endTime: '2025-05-07',
           status: 'outbid',
-          image: 'https://via.placeholder.com/100'
+          image: getPlaceholderImage('gem', 'ruby')
         }
       ]);
 
       setWonBids([
-        {
-          id: '3',
+        {          id: '3',
           gemName: 'Green Emerald',
           finalPrice: 1500,
           purchaseDate: '2025-04-30',
           status: 'pending_meeting',
-          image: 'https://via.placeholder.com/100'
+          image: getPlaceholderImage('gem', 'emerald')
         }
       ]);
 
@@ -338,27 +329,25 @@ const BuyerDashboard: React.FC = () => {
         }
       ]);
 
-      setWatchlist([
-        {
+      setWatchlist([        {
           id: '4',
           gemName: 'Yellow Topaz',
           currentBid: 650,
           endTime: '2025-05-15',
-          image: 'https://via.placeholder.com/100'
-        },
-        {
+          image: getPlaceholderImage('gem', 'yellow topaz')
+        },        {
           id: '5',
           gemName: 'Diamond Cluster',
           currentBid: 2100,
           endTime: '2025-05-12',
-          image: 'https://via.placeholder.com/100'
+          image: getPlaceholderImage('gem', 'diamond')
         },
         {
           id: '6',
           gemName: 'Amethyst Round Cut',
           currentBid: 450,
           endTime: '2025-05-20',
-          image: 'https://via.placeholder.com/100'
+          image: getPlaceholderImage('gem', 'amethyst')
         }
       ]);
 

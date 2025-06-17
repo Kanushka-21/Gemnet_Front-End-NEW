@@ -29,6 +29,9 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
+// Utilities
+import { getPlaceholderImage, handleImageError } from '@/utils/placeholderImages';
+
 // Dashboard Components
 const StatCard: React.FC<{
   title: string;
@@ -91,16 +94,12 @@ const GemListingCard: React.FC<{
       className="bg-white rounded-xl shadow-sm border border-secondary-200 overflow-hidden"
     >
       <div className="flex">
-        <div className="w-32 h-32 bg-secondary-100 flex-shrink-0">
-          <img
-            src={images[0] || "https://via.placeholder.com/100?text=Gem"}
-            alt={name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "https://via.placeholder.com/100?text=Gem";
-            }}
-          />
+        <div className="w-32 h-32 bg-secondary-100 flex-shrink-0">        <img
+          src={images[0] || getPlaceholderImage('gem', 'gem')}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={(e) => handleImageError(e, 'gem', '100x100')}
+        />
         </div>
         <div className="p-4 flex-grow">
           <div className="flex justify-between items-start mb-2">
@@ -179,16 +178,12 @@ const BidItem: React.FC<{
     <motion.div
       whileHover={{ y: -2 }}
       className="bg-white rounded-xl shadow-sm border border-secondary-200 p-4 flex"
-    >
-      <div className="w-16 h-16 bg-secondary-100 rounded-lg overflow-hidden mr-4">
+    >      <div className="w-16 h-16 bg-secondary-100 rounded-lg overflow-hidden mr-4">
         <img
           src={gemImage}
           alt={gemName}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/50?text=Gem";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '50x50')}
         />
       </div>
       
@@ -442,8 +437,7 @@ const SellerDashboard: React.FC = () => {
     setTimeout(() => {
       setGemListings([
         {
-          id: '1',
-          name: 'Blue Sapphire',
+          id: '1',          name: 'Blue Sapphire',
           category: 'Sapphire',
           price: 25000,
           certified: true,
@@ -451,11 +445,10 @@ const SellerDashboard: React.FC = () => {
           views: 120,
           bids: 3,
           dateAdded: '2025-04-15',
-          images: ['https://via.placeholder.com/200'],
+          images: [getPlaceholderImage('gem', 'blue sapphire')],
         },
         {
-          id: '2',
-          name: 'Ceylon Ruby',
+          id: '2',          name: 'Ceylon Ruby',
           category: 'Ruby',
           price: 35000,
           certified: false,
@@ -463,11 +456,10 @@ const SellerDashboard: React.FC = () => {
           views: 85,
           bids: 1,
           dateAdded: '2025-04-20',
-          images: ['https://via.placeholder.com/200'],
+          images: [getPlaceholderImage('gem', 'ruby')],
         },
         {
-          id: '3',
-          name: 'Green Emerald',
+          id: '3',          name: 'Green Emerald',
           category: 'Emerald',
           price: 42000,
           certified: true,
@@ -475,19 +467,18 @@ const SellerDashboard: React.FC = () => {
           views: 210,
           bids: 5,
           dateAdded: '2025-03-30',
-          images: ['https://via.placeholder.com/200'],
+          images: [getPlaceholderImage('gem', 'emerald')],
         },
       ]);
 
-      setPendingBids([
-        {
+      setPendingBids([        {
           id: '1',
           gemName: 'Blue Sapphire',
           bidAmount: 22000,
           bidderName: 'John D.',
           status: 'pending',
           bidTime: '2025-04-28T10:30:00',
-          gemImage: 'https://via.placeholder.com/100',
+          gemImage: getPlaceholderImage('gem', 'blue sapphire'),
         },
         {
           id: '2',
@@ -496,7 +487,7 @@ const SellerDashboard: React.FC = () => {
           bidderName: 'Jane S.',
           status: 'pending',
           bidTime: '2025-04-29T15:45:00',
-          gemImage: 'https://via.placeholder.com/100',
+          gemImage: getPlaceholderImage('gem', 'ruby'),
         }
       ]);
 
@@ -508,7 +499,7 @@ const SellerDashboard: React.FC = () => {
           buyerName: 'Mark T.',
           saleDate: '2025-04-25',
           status: 'meeting_scheduled',
-          gemImage: 'https://via.placeholder.com/100',
+          gemImage: getPlaceholderImage('gem', 'emerald'),
         }
       ]);
 
@@ -790,10 +781,9 @@ const SellerDashboard: React.FC = () => {
           
           <div className="divide-y divide-secondary-100">
             <div className="p-4 hover:bg-secondary-50">
-              <div className="grid grid-cols-6 gap-4 items-center">
-                <div className="col-span-2 flex items-center">
+              <div className="grid grid-cols-6 gap-4 items-center">                <div className="col-span-2 flex items-center">
                   <div className="w-10 h-10 bg-secondary-100 rounded-md overflow-hidden mr-3">
-                    <img src="https://via.placeholder.com/40" alt="" className="w-full h-full object-cover" />
+                    <img src={getPlaceholderImage('gem', '40x40')} alt="" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <p className="font-medium text-secondary-900">Blue Sapphire</p>
@@ -812,10 +802,9 @@ const SellerDashboard: React.FC = () => {
             </div>
             
             <div className="p-4 hover:bg-secondary-50">
-              <div className="grid grid-cols-6 gap-4 items-center">
-                <div className="col-span-2 flex items-center">
+              <div className="grid grid-cols-6 gap-4 items-center">                <div className="col-span-2 flex items-center">
                   <div className="w-10 h-10 bg-secondary-100 rounded-md overflow-hidden mr-3">
-                    <img src="https://via.placeholder.com/40" alt="" className="w-full h-full object-cover" />
+                    <img src={getPlaceholderImage('gem', '40x40')} alt="" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <p className="font-medium text-secondary-900">Blue Sapphire</p>

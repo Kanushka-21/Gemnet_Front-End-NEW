@@ -29,6 +29,9 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
+// Utilities
+import { getPlaceholderImage, handleImageError } from '@/utils/placeholderImages';
+
 // Dashboard Components
 const StatCard: React.FC<{
   title: string;
@@ -100,15 +103,11 @@ const PurchaseItem: React.FC<{
       whileHover={{ y: -2 }}
       className="bg-white rounded-xl shadow-sm border border-secondary-200 p-4 flex"
     >
-      <div className="w-16 h-16 bg-secondary-100 rounded-lg overflow-hidden mr-4">
-        <img
+      <div className="w-16 h-16 bg-secondary-100 rounded-lg overflow-hidden mr-4">        <img
           src={image}
           alt={gemName}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/50?text=Gem";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '50x50')}
         />
       </div>
       
@@ -273,11 +272,7 @@ const UserCard: React.FC<{
           <img
             src={avatar}
             alt={name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "https://via.placeholder.com/50?text=User";
-            }}
+            className="w-full h-full object-cover"            onError={(e) => handleImageError(e, 'avatar', '50x50')}
           />
         </div>
       </div>
@@ -462,11 +457,10 @@ const AdminDashboard: React.FC = () => {
           buyerId: 'B001',
           seller: 'Ceylon Gems',
           sellerId: 'S001',
-          price: 1200,
-          purchaseDate: '2025-05-01',
+          price: 1200,          purchaseDate: '2025-05-01',
           status: 'confirmed',
           meetingStatus: 'pending',
-          image: 'https://via.placeholder.com/80'
+          image: getPlaceholderImage('blue sapphire', '80x80')
         },
         {
           id: '2',
@@ -475,12 +469,11 @@ const AdminDashboard: React.FC = () => {
           buyer: 'Jane Smith',
           buyerId: 'B002',
           seller: 'Sri Lanka Gems',
-          sellerId: 'S002',
-          price: 950,
+          sellerId: 'S002',          price: 950,
           purchaseDate: '2025-05-02',
           status: 'confirmed',
           meetingStatus: 'scheduled',
-          image: 'https://via.placeholder.com/80'
+          image: getPlaceholderImage('ruby', '80x80')
         },
         {
           id: '3',
@@ -489,12 +482,11 @@ const AdminDashboard: React.FC = () => {
           buyer: 'Robert Johnson',
           buyerId: 'B003',
           seller: 'Gem Palace',
-          sellerId: 'S003',
-          price: 1500,
+          sellerId: 'S003',          price: 1500,
           purchaseDate: '2025-04-28',
           status: 'confirmed',
           meetingStatus: 'completed',
-          image: 'https://via.placeholder.com/80'
+          image: getPlaceholderImage('emerald', '80x80')
         }
       ]);
 
@@ -504,11 +496,10 @@ const AdminDashboard: React.FC = () => {
           id: 'U001',
           name: 'John Doe',
           email: 'john@example.com',
-          role: 'buyer',
-          status: 'active',
+          role: 'buyer',          status: 'active',
           verificationStatus: 'verified',
           registrationDate: '2025-01-15',
-          avatar: 'https://via.placeholder.com/150'
+          avatar: getPlaceholderImage('avatar')
         },
         {
           id: 'U002',
@@ -516,9 +507,8 @@ const AdminDashboard: React.FC = () => {
           email: 'jane@example.com',
           role: 'buyer',
           status: 'active',
-          verificationStatus: 'verified',
-          registrationDate: '2025-02-20',
-          avatar: 'https://via.placeholder.com/150'
+          verificationStatus: 'verified',          registrationDate: '2025-02-20',
+          avatar: getPlaceholderImage('avatar')
         },
         {
           id: 'S001',
@@ -526,9 +516,8 @@ const AdminDashboard: React.FC = () => {
           email: 'info@ceylongems.com',
           role: 'seller',
           status: 'active',
-          verificationStatus: 'verified',
-          registrationDate: '2024-12-10',
-          avatar: 'https://via.placeholder.com/150'
+          verificationStatus: 'verified',          registrationDate: '2024-12-10',
+          avatar: getPlaceholderImage('avatar')
         },
         {
           id: 'U003',
@@ -538,7 +527,7 @@ const AdminDashboard: React.FC = () => {
           status: 'pending',
           verificationStatus: 'pending',
           registrationDate: '2025-05-01',
-          avatar: 'https://via.placeholder.com/150'
+          avatar: getPlaceholderImage('avatar')
         }
       ]);
 

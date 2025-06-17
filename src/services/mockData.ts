@@ -1,4 +1,6 @@
 // Mock data for development and testing
+import { getPlaceholderImage } from '@/utils/placeholderImages';
+
 export const mockUser = {
   userId: "user-123",
   email: "user@example.com",
@@ -17,7 +19,7 @@ export const mockGems = [
     category: "Sapphire",
     currentBid: 4500,
     minimumBid: 4650,
-    image: "https://via.placeholder.com/300x200?text=Blue+Sapphire",
+    image: getPlaceholderImage('blue sapphire'),
     certified: true,
     weight: 3.2, // carats
     dimensions: "8mm x 6mm",
@@ -36,7 +38,7 @@ export const mockGems = [
     category: "Ruby",
     currentBid: 5800,
     minimumBid: 5950,
-    image: "https://via.placeholder.com/300x200?text=Ruby",
+    image: getPlaceholderImage('ruby'),
     certified: true,
     weight: 2.8, // carats
     dimensions: "7mm x 7mm",
@@ -55,7 +57,7 @@ export const mockGems = [
     category: "Topaz",
     currentBid: 2100,
     minimumBid: 2250,
-    image: "https://via.placeholder.com/300x200?text=Yellow+Topaz",
+    image: getPlaceholderImage('yellow topaz'),
     certified: false,
     weight: 4.5, // carats
     dimensions: "9mm x 7mm",
@@ -74,7 +76,7 @@ export const mockGems = [
     category: "Emerald",
     currentBid: 6200,
     minimumBid: 6400,
-    image: "https://via.placeholder.com/300x200?text=Emerald",
+    image: getPlaceholderImage('emerald'),
     certified: true,
     weight: 2.3, // carats
     dimensions: "6mm x 6mm",
@@ -97,7 +99,7 @@ export const mockBids = [
     yourBid: 4500,
     endTime: "2025-05-08",
     status: "highest",
-    image: "https://via.placeholder.com/100?text=Blue+Sapphire"
+    image: getPlaceholderImage('blue sapphire', '100x100')
   },
   {
     id: 2,
@@ -107,6 +109,6 @@ export const mockBids = [
     yourBid: 5750,
     endTime: "2025-05-07",
     status: "outbid",
-    image: "https://via.placeholder.com/100?text=Ruby"
+    image: getPlaceholderImage('ruby', '100x100')
   }
 ];

@@ -7,6 +7,9 @@ import { Shield, Gem, Users, Globe, TrendingUp, Check } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 
+// Utilities
+import { getPlaceholderImage, handleImageError } from '@/utils/placeholderImages';
+
 // Helper function to calculate days until auction end
 const calculateDaysRemaining = (endDateStr: string): number => {
   const endDate = new Date(endDateStr);
@@ -76,15 +79,11 @@ const GemCard: React.FC<GemCardProps> = ({ id, name, image, currentBid, minimumB
       className="bg-white rounded-xl shadow-md overflow-hidden border border-secondary-200"
     >
       {/* Image */}
-      <div className="relative h-48 bg-secondary-100">
-        <img 
+      <div className="relative h-48 bg-secondary-100">        <img 
           src={image} 
           alt={name}
           className="w-full h-full object-cover" 
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/300x200?text=Gem+Image";
-          }}
+          onError={(e) => handleImageError(e, 'gem', '300x200')}
         />
         {certified && (
           <div className="absolute top-2 right-2 bg-green-500 text-white text-xs py-1 px-2 rounded-full">
@@ -151,13 +150,12 @@ const HomePage: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
-  
-  // Featured gems data
+    // Featured gems data
   const featuredGems = [
     {
       id: 1,
       name: 'Premium Blue Sapphire',
-      image: 'https://via.placeholder.com/300x200?text=Blue+Sapphire',
+      image: getPlaceholderImage('blue sapphire'),
       currentBid: 4500,
       minimumBid: 4650,
       category: 'Sapphire',
@@ -168,7 +166,7 @@ const HomePage: React.FC = () => {
     {
       id: 2,
       name: 'Natural Ruby',
-      image: 'https://via.placeholder.com/300x200?text=Ruby',
+      image: getPlaceholderImage('ruby'),
       currentBid: 5800,
       minimumBid: 5950,
       category: 'Ruby',
@@ -179,7 +177,7 @@ const HomePage: React.FC = () => {
     {
       id: 3,
       name: 'Yellow Topaz',
-      image: 'https://via.placeholder.com/300x200?text=Yellow+Topaz',
+      image: getPlaceholderImage('yellow topaz'),
       currentBid: 2100,
       minimumBid: 2250,
       category: 'Topaz',
@@ -190,7 +188,7 @@ const HomePage: React.FC = () => {
     {
       id: 4,
       name: 'Green Emerald',
-      image: 'https://via.placeholder.com/300x200?text=Emerald',
+      image: getPlaceholderImage('emerald'),
       currentBid: 6200,
       minimumBid: 6400,
       category: 'Emerald',
@@ -199,25 +197,24 @@ const HomePage: React.FC = () => {
       auctionEndsAt: '2025-07-20',
     }
   ];
-  
-  // Testimonials data
+    // Testimonials data
   const testimonials = [
     {
       name: 'Anil Perera',
       role: 'Gem Seller',
-      avatar: 'https://via.placeholder.com/64?text=AP',
+      avatar: getPlaceholderImage('avatar'),
       content: 'GemNet has transformed my business. The secure platform and verification system brings trust to online gem sales.'
     },
     {
       name: 'Priya Mendis',
       role: 'Collector',
-      avatar: 'https://via.placeholder.com/64?text=PM',
+      avatar: getPlaceholderImage('avatar'),
       content: 'As a gem collector, I appreciate the detailed listings and certification information. GemNet makes it easy to find authentic stones.'
     },
     {
       name: 'Roshan Silva',
       role: 'Jewelry Designer',
-      avatar: 'https://via.placeholder.com/64?text=RS',
+      avatar: getPlaceholderImage('avatar'),
       content: 'Finding quality gemstones for my designs used to be challenging. With GemNet, I can source verified gems with confidence.'
     }
   ];
@@ -265,11 +262,11 @@ const HomePage: React.FC = () => {
               className="md:w-1/2 flex justify-center"
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-primary-500 rounded-full opacity-20 blur-3xl"></div>
-                <img 
-                  src="https://via.placeholder.com/600x400?text=GemNet+Platform" 
+                <div className="absolute inset-0 bg-primary-500 rounded-full opacity-20 blur-3xl"></div>                <img 
+                  src={getPlaceholderImage('platform')} 
                   alt="GemNet Platform" 
                   className="relative z-10 rounded-lg shadow-2xl max-w-full h-auto"
+                  onError={(e) => handleImageError(e, 'platform')}
                 />
               </div>
             </motion.div>
