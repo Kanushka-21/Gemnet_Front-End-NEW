@@ -54,6 +54,17 @@ export const authAPI = {
     return response.data;
   },
 
+  // Test backend connection
+  testConnection: async (): Promise<boolean> => {
+    try {
+      await api.get('/api/auth/health', { timeout: 5000 });
+      return true;
+    } catch (error) {
+      console.warn('Backend connection test failed:', error);
+      return false;
+    }
+  },
+
   // Register new user
   register: async (userData: UserRegistrationRequest): Promise<ApiResponse<string>> => {
     const response: AxiosResponse<ApiResponse<string>> = await api.post('/api/auth/register', userData);

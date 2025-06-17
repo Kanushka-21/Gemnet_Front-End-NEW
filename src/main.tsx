@@ -11,16 +11,17 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import MarketplacePage from './pages/MarketplacePage'
+import BackendTestPage from './pages/BackendTestPage'
 
 const App: React.FC = () => {
   return (
     <Router>
-      <AuthProvider>
-        <Routes>
+      <AuthProvider>        <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register/*" element={<RegisterPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/backend-test" element={<BackendTestPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

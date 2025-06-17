@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, CheckCircle, XCircle, Camera as CameraIcon } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, XCircle, Camera as CameraIcon, Wifi, WifiOff } from 'lucide-react';
 import { useRegistration, useCamera } from '@/hooks';
 import { VerificationStatus } from '@/types';
 import Button from '@/components/ui/Button';
 import Camera from '@/components/ui/Camera';
 import Modal from '@/components/ui/Modal';
+import BackendConnectionService from '@/services/backendConnection';
 
 const FaceVerificationStep: React.FC = () => {
   const navigate = useNavigate();
-  const { progress, verifyFace, loading, goToStep } = useRegistration();
+  const { progress, verifyFace, loading } = useRegistration();
   const { requestCameraPermission, isEnabled, error: cameraError } = useCamera();
   
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(VerificationStatus.PENDING);
@@ -18,6 +19,17 @@ const FaceVerificationStep: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasCheckedProgress, setHasCheckedProgress] = useState(false);
   const [isNavigatingToNIC, setIsNavigatingToNIC] = useState(false);
+  const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check backend connection on component mount
+    const checkConnection = async () => {
+      const isConnected = await BackendConnectionService.checkBackendConnection();
+      setBackendConnected(isConnected);
+    };
+    
+    checkConnection();
+  }, []);
 
   useEffect(() => {
     // Give some time for the progress to be updated before checking
@@ -57,12 +69,12 @@ const FaceVerificationStep: React.FC = () => {
       setShowInstructions(false);
     }
   };
-
   const handleCapture = async (file: File) => {
     setCapturedImage(file);
     setVerificationStatus(VerificationStatus.IN_PROGRESS);
 
     if (progress.userId) {
+      console.log('Starting face verification with User ID:', progress.userId);
       const success = await verifyFace(progress.userId, file);
       
       if (success) {
@@ -105,10 +117,14 @@ const FaceVerificationStep: React.FC = () => {
             <div className="animate-spin rounded-full h-24 w-24 border-b-4 border-primary-600 mb-8"></div>
             <h3 className="text-2xl font-bold text-secondary-900 mb-4">
               Processing Face Verification
-            </h3>
-            <p className="text-lg text-secondary-600 text-center max-w-md">
+            </h3>            <p className="text-lg text-secondary-600 text-center max-w-md">
               Please wait while we analyze your face using advanced AI technology...
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 max-w-md mx-auto">
+              <p className="text-sm text-blue-700 text-center">
+                <strong>Development Mode:</strong> Using mock verification for testing
+              </p>
+            </div>
           </motion.div>
         );
 
@@ -169,6 +185,28 @@ const FaceVerificationStep: React.FC = () => {
 
   return (
     <div className="h-full w-full p-8 flex flex-col">
+      {/* Backend Status Indicator */}
+      <div className="mb-4">
+        <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${
+          backendConnected === true 
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : backendConnected === false
+            ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            : 'bg-blue-50 border-blue-200 text-blue-800'
+        }`}>
+          {backendConnected === true ? (
+            <Wifi className="w-4 h-4" />
+          ) : backendConnected === false ? (
+            <WifiOff className="w-4 h-4" />
+          ) : (
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          )}
+          <span className="text-sm font-medium">
+            {BackendConnectionService.getConnectionStatusMessage()}
+          </span>
+        </div>
+      </div>
+
       {/* Camera Section - Full Size */}
       <div className="flex-1 flex flex-col">
         {verificationStatus === VerificationStatus.PENDING && (

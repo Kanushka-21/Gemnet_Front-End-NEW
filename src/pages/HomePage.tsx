@@ -537,8 +537,7 @@ const HomePage: React.FC = () => {
           >
             Join our verified community of gem enthusiasts, collectors, and traders today. 
             Get started with secure identity verification.
-          </motion.p>
-          <motion.div
+          </motion.p>          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -559,6 +558,24 @@ const HomePage: React.FC = () => {
               className="bg-white text-primary-800 hover:bg-primary-50"
             >
               Sign In
+            </Button>
+          </motion.div>
+          
+          {/* Developer Tools */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="mt-8"
+          >
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/backend-test')}
+              className="bg-transparent border-primary-300 text-primary-200 hover:bg-primary-800 text-sm"
+            >
+              🔧 Backend Connection Test
             </Button>
           </motion.div>
         </div>

@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Wifi, WifiOff } from 'lucide-react';
 import { useRegistration, useFormValidation } from '@/hooks';
 import { validators } from '@/utils';
-import { UserRegistrationRequest, RegistrationStep } from '@/types';
+import { UserRegistrationRequest } from '@/types';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import BackendConnectionService from '@/services/backendConnection';
 
 const PersonalInfoStep: React.FC = () => {
   const navigate = useNavigate();
   const { registerUser, loading, progress } = useRegistration();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
 
   const initialValues: UserRegistrationRequest = {
     firstName: '',
@@ -63,6 +64,16 @@ const PersonalInfoStep: React.FC = () => {
     setTouched,
     validate,
   } = useFormValidation(initialValues, validationRules);
+
+  // Check backend connection on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      const isConnected = await BackendConnectionService.checkBackendConnection();
+      setBackendConnected(isConnected);
+    };
+    
+    checkConnection();
+  }, []);
 
   // Watch for progress changes after successful registration
   useEffect(() => {
@@ -116,9 +127,30 @@ const PersonalInfoStep: React.FC = () => {
       setIsNavigating(false);
     }
   };
-
   return (
     <div className="h-full w-full p-6 flex flex-col">
+      {/* Backend Status Indicator */}
+      <div className="mb-4">
+        <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${
+          backendConnected === true 
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : backendConnected === false
+            ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            : 'bg-blue-50 border-blue-200 text-blue-800'
+        }`}>
+          {backendConnected === true ? (
+            <Wifi className="w-4 h-4" />
+          ) : backendConnected === false ? (
+            <WifiOff className="w-4 h-4" />
+          ) : (
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          )}
+          <span className="text-sm font-medium">
+            {BackendConnectionService.getConnectionStatusMessage()}
+          </span>
+        </div>
+      </div>
+
       {/* Form Content - Full Size */}
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
         {/* Form Fields - Expanded Layout */}
