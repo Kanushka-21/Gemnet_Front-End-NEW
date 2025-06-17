@@ -1,0 +1,909 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Heart, 
+  CheckCircle, 
+  Clock, 
+  User, 
+  Info, 
+  FileCheck, 
+  History, 
+  Eye, 
+  AlertTriangle, 
+  ArrowLeft,
+  Shield,
+  Share2,
+  MessageCircle,
+  DollarSign,
+  Certificate,
+  Hexagon,
+  Scale,
+  Droplet,
+  Calendar,
+  ChevronRight
+} from 'lucide-react';
+
+// Components
+import Layout from '@/components/layout/Layout';
+import Button from '@/components/ui/Button';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
+
+// Types
+interface GemDetails {
+  id: string;
+  name: string;
+  type: string;
+  color: string;
+  carat: number;
+  shape: string;
+  clarity: string;
+  certificate: {
+    status: string;
+    id: string;
+    issuedBy: string;
+    issuedDate: string;
+  };
+  isCertified: boolean;
+  currentBid: number;
+  minimumBid: number;
+  startingPrice: number;
+  seller: {
+    id: string;
+    name: string;
+    rating: number;
+    verified: boolean;
+  };
+  timeLeft: string;
+  origin: string;
+  description: string;
+  images: string[];
+  auctionEndTime: string;
+  verificationStatus: string;
+}
+
+interface Bid {
+  id: string;
+  amount: number;
+  user: string;
+  time: string;
+  isHighest: boolean;
+}
+
+// Image Gallery Component
+const ImageGallery: React.FC<{images: string[]}> = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  return (
+    <div className="relative rounded-xl overflow-hidden bg-secondary-100 mb-4">
+      <div className="aspect-w-4 aspect-h-3 w-full">
+        <img
+          src={images[currentIndex] || "https://via.placeholder.com/800x600?text=Gem+Image"}
+          alt="Gem"
+          className="w-full h-full object-contain"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "https://via.placeholder.com/800x600?text=Gem+Image";
+          }}
+        />
+      </div>
+      
+      {images.length > 1 && (
+        <>
+          <button
+            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-80 rounded-full p-2 shadow-md hover:bg-opacity-100"
+            onClick={handlePrevious}
+          >
+            <ChevronRight className="h-5 w-5 transform rotate-180" />
+          </button>
+          <button
+            className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-80 rounded-full p-2 shadow-md hover:bg-opacity-100"
+            onClick={handleNext}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      )}
+      
+      {/* Thumbnail Navigation */}
+      {images.length > 1 && (
+        <div className="flex justify-center space-x-2 mt-2 p-2">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-3 h-3 rounded-full ${
+                index === currentIndex ? 'bg-primary-600' : 'bg-secondary-300'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Bid History Item
+const BidHistoryItem: React.FC<{bid: Bid}> = ({ bid }) => (
+  <div className={`p-3 ${bid.isHighest ? 'bg-primary-50' : ''} border-b border-secondary-200 last:border-b-0`}>
+    <div className="flex justify-between items-center">
+      <div className="flex items-center">
+        <div className="bg-secondary-100 p-2 rounded-full mr-3">
+          <User className="h-4 w-4 text-secondary-500" />
+        </div>
+        <div>
+          <p className="font-medium text-secondary-800">{bid.user}</p>
+          <p className="text-xs text-secondary-500">{new Date(bid.time).toLocaleString()}</p>
+        </div>
+      </div>
+      <div className={`font-bold ${bid.isHighest ? 'text-primary-600' : 'text-secondary-900'}`}>
+        ${bid.amount.toLocaleString()}
+        {bid.isHighest && (
+          <span className="ml-2 text-xs bg-green-100 text-green-700 py-1 px-2 rounded-full">
+            Highest
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+// Bid Confirmation Modal
+const BidConfirmModal: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  bidAmount: number;
+  gemName: string;
+}> = ({ visible, onClose, onConfirm, bidAmount, gemName }) => {
+  return (
+    <div className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center transition-opacity ${
+      visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+    }`}>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: visible ? 1 : 0.9, opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden"
+      >
+        <div className="p-6 border-b border-secondary-200 flex items-center">
+          <DollarSign className="h-6 w-6 text-primary-600 mr-3" />
+          <h2 className="text-xl font-bold text-secondary-900">Confirm Your Bid</h2>
+        </div>
+        
+        <div className="p-6">
+          <p className="text-secondary-800 mb-4">
+            You are about to place a bid of <span className="font-bold text-primary-600">${bidAmount.toLocaleString()}</span> for <span className="font-medium">{gemName}</span>.
+          </p>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start">
+              <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-amber-800 mb-1">Important Note</h4>
+                <p className="text-sm text-amber-700">
+                  By confirming this bid, you are entering into a legally binding agreement to purchase this gem if you win the auction. Cancellation may result in penalties.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-4 bg-secondary-50 border-t border-secondary-200 flex justify-end space-x-3">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={onConfirm}>
+            Confirm Bid
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Certificate View Modal
+const CertificateModal: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+  certificate: {
+    id: string;
+    issuedBy: string;
+    issuedDate: string;
+  };
+}> = ({ visible, onClose, certificate }) => {
+  return (
+    <div className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center transition-opacity ${
+      visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+    }`}>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: visible ? 1 : 0.9, opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden"
+      >
+        <div className="p-6 border-b border-secondary-200 flex items-center">
+          <Certificate className="h-6 w-6 text-primary-600 mr-3" />
+          <h2 className="text-xl font-bold text-secondary-900">Gem Certificate</h2>
+        </div>
+        
+        <div className="p-6">
+          <div className="border border-secondary-200 rounded-lg p-8 bg-secondary-50 mb-6">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-primary-100 rounded-full">
+                <Shield className="h-8 w-8 text-primary-600" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-center text-secondary-900 mb-1">Certificate of Authenticity</h3>
+            <p className="text-center text-secondary-600 mb-6">Gemological Institute of Sri Lanka</p>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between py-2 border-b border-secondary-200">
+                <span className="text-secondary-600">Certificate ID:</span>
+                <span className="font-medium">{certificate.id}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-secondary-200">
+                <span className="text-secondary-600">Issued By:</span>
+                <span className="font-medium">{certificate.issuedBy}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-secondary-200">
+                <span className="text-secondary-600">Issue Date:</span>
+                <span className="font-medium">{new Date(certificate.issuedDate).toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-secondary-600">Verification:</span>
+                <span className="text-green-600 font-medium flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-1" /> Verified
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-sm text-secondary-500 text-center">
+            This certificate confirms the authenticity and quality of the gem as described. You can verify this certificate by contacting the issuing authority directly.
+          </p>
+        </div>
+        
+        <div className="p-4 bg-secondary-50 border-t border-secondary-200 flex justify-end">
+          <Button onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const GemDetailsPage: React.FC = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const gemId = id || 'GEM001'; // Fallback for demo purposes
+  
+  const [gem, setGem] = useState<GemDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [bidAmount, setBidAmount] = useState(0);
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [bidHistory, setBidHistory] = useState<Bid[]>([]);
+  const [bidConfirmVisible, setBidConfirmVisible] = useState(false);
+  const [certificateModalVisible, setCertificateModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState('details');
+  
+  // Mock user - in a real app would come from auth context
+  const [currentUser] = useState({
+    id: 'B001',
+    name: 'John Doe',
+    role: 'buyer'
+  });
+
+  useEffect(() => {
+    // Simulate API call to get gem details
+    setTimeout(() => {
+      // Sample gem data
+      const gemData: GemDetails = {
+        id: 'GEM001',
+        name: 'Blue Ceylon Sapphire',
+        type: 'Sapphire',
+        color: 'Blue',
+        carat: 3.5,
+        shape: 'Oval',
+        clarity: 'VS',
+        certificate: {
+          status: 'certified',
+          id: 'CERT123456',
+          issuedBy: 'Gemological Institute of Sri Lanka',
+          issuedDate: '2025-03-15'
+        },
+        isCertified: true,
+        currentBid: 1200,
+        minimumBid: 1250, // Minimum next bid
+        startingPrice: 1000,
+        seller: {
+          id: 'S001',
+          name: 'Ceylon Gems',
+          rating: 4.8,
+          verified: true
+        },
+        timeLeft: '3 days, 4 hours',
+        origin: 'Ratnapura, Sri Lanka',
+        description: 'This exquisite Blue Ceylon Sapphire features a stunning deep blue color characteristic of the finest sapphires from Sri Lanka. The gem has been expertly cut to maximize its brilliance and color saturation. With excellent clarity and a vibrant hue, this sapphire represents a premium example of Ceylon sapphires.',
+        images: [
+          'https://via.placeholder.com/800x600?text=Blue+Sapphire+1',
+          'https://via.placeholder.com/800x600?text=Blue+Sapphire+2',
+          'https://via.placeholder.com/800x600?text=Blue+Sapphire+3',
+        ],
+        auctionEndTime: '2025-06-20T15:00:00',
+        verificationStatus: 'verified'
+      };
+
+      setGem(gemData);
+      setBidAmount(gemData.minimumBid);
+      
+      // Sample bid history
+      const bidHistoryData: Bid[] = [
+        { 
+          id: 'BID005', 
+          amount: 1200, 
+          user: 'J. Smith', 
+          time: '2025-06-16T14:30:00', 
+          isHighest: true 
+        },
+        { 
+          id: 'BID004', 
+          amount: 1150, 
+          user: 'R. Johnson', 
+          time: '2025-06-16T12:15:00',
+          isHighest: false 
+        },
+        { 
+          id: 'BID003', 
+          amount: 1100, 
+          user: 'M. Davis', 
+          time: '2025-06-15T18:45:00',
+          isHighest: false 
+        },
+        { 
+          id: 'BID002', 
+          amount: 1050, 
+          user: 'J. Smith', 
+          time: '2025-06-15T09:22:00',
+          isHighest: false 
+        },
+        { 
+          id: 'BID001', 
+          amount: 1000, 
+          user: 'A. Wilson', 
+          time: '2025-06-14T16:10:00',
+          isHighest: false 
+        }
+      ];
+      
+      setBidHistory(bidHistoryData);
+      setLoading(false);
+    }, 1000);
+  }, [gemId]);
+
+  const handleBidAmountChange = (value: number) => {
+    setBidAmount(value);
+  };
+
+  const handlePlaceBid = () => {
+    setBidConfirmVisible(true);
+  };
+
+  const handleConfirmBid = () => {
+    // Here you would make API call to place the bid
+    setBidConfirmVisible(false);
+    
+    // Simulate successful bid
+    const newBid = {
+      id: `BID${(bidHistory.length + 1).toString().padStart(3, '0')}`,
+      amount: bidAmount,
+      user: currentUser.name,
+      time: new Date().toISOString(),
+      isHighest: true
+    };
+    
+    // Update the bid history
+    const updatedBidHistory = [
+      newBid,
+      ...bidHistory.map(bid => ({ ...bid, isHighest: false }))
+    ];
+    
+    setBidHistory(updatedBidHistory);
+    
+    // Update the gem data
+    if (gem) {
+      setGem({
+        ...gem,
+        currentBid: bidAmount,
+        minimumBid: bidAmount + 50
+      });
+    }
+    
+    // Show success message
+    alert('Your bid has been placed successfully!');
+  };
+
+  const handleToggleWatchlist = () => {
+    setInWatchlist(!inWatchlist);
+  };
+
+  const handleViewCertificate = () => {
+    setCertificateModalVisible(true);
+  };
+
+  const renderTimeLeft = () => {
+    if (!gem) return null;
+    
+    const endTime = new Date(gem.auctionEndTime).getTime();
+    const now = new Date().getTime();
+    const timeRemaining = endTime - now;
+    
+    if (timeRemaining <= 0) {
+      return <span className="text-red-600">Auction ended</span>;
+    }
+    
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return (
+      <div className="flex items-center gap-2">
+        <div className="p-1.5 bg-primary-100 rounded-md">
+          <span className="font-bold text-primary-700">{days}</span>
+          <span className="text-xs block text-primary-600">days</span>
+        </div>
+        <div className="p-1.5 bg-primary-100 rounded-md">
+          <span className="font-bold text-primary-700">{hours}</span>
+          <span className="text-xs block text-primary-600">hrs</span>
+        </div>
+        <div className="p-1.5 bg-primary-100 rounded-md">
+          <span className="font-bold text-primary-700">{minutes}</span>
+          <span className="text-xs block text-primary-600">min</span>
+        </div>
+      </div>
+    );
+  };
+  if (loading) {
+    return (
+      <Layout>
+        {/* Breadcrumbs */}
+        <Breadcrumbs 
+          items={[
+            { label: 'Home', path: '/' },
+            { label: 'Marketplace', path: '/marketplace' },
+            { label: 'Loading...' }
+          ]}
+        />
+        
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+          <p className="text-secondary-600">Loading gem details...</p>
+        </div>
+      </Layout>
+    );
+  }
+  if (!gem) {
+    return (
+      <Layout>
+        {/* Breadcrumbs */}
+        <Breadcrumbs 
+          items={[
+            { label: 'Home', path: '/' },
+            { label: 'Marketplace', path: '/marketplace' },
+            { label: 'Gem Not Found' }
+          ]}
+        />
+        
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <AlertTriangle className="h-16 w-16 text-amber-500 mb-4" />
+          <h2 className="text-2xl font-bold text-secondary-900 mb-2">Gem Not Found</h2>
+          <p className="text-secondary-600 mb-6">The gem you are looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => navigate('/marketplace')}>
+            Back to Marketplace
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+  return (
+    <Layout>
+      {/* Breadcrumbs */}
+      <Breadcrumbs 
+        items={[
+          { label: 'Home', path: '/' },
+          { label: 'Marketplace', path: '/marketplace' },
+          { label: gem.name }
+        ]}
+      />
+      
+      {/* Back Button */}
+      <div className="mb-6">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="flex items-center"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Images and Seller Info */}
+        <div className="lg:col-span-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Image Gallery */}
+            <div className="mb-6">
+              <ImageGallery images={gem.images} />
+            </div>
+            
+            {/* Gem Name and Actions */}
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-secondary-900">{gem.name}</h1>
+                <div className="flex items-center mt-1">
+                  <span className="text-secondary-600 mr-2">{gem.type}</span>
+                  {gem.isCertified && (
+                    <span className="inline-flex items-center text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                      <CheckCircle className="h-3 w-3 mr-1" /> Certified
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleWatchlist}
+                  className={inWatchlist ? 'border-primary-500 text-primary-600' : ''}
+                >
+                  <Heart className={`h-4 w-4 mr-1 ${inWatchlist ? 'fill-primary-500' : ''}`} />
+                  {inWatchlist ? 'Watching' : 'Watch'}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {}}
+                >
+                  <Share2 className="h-4 w-4 mr-1" />
+                  Share
+                </Button>
+              </div>
+            </div>
+            
+            {/* Tabs */}
+            <div className="mb-6 border-b border-secondary-200">
+              <div className="flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('details')}
+                  className={`pb-3 px-1 ${activeTab === 'details'
+                    ? 'border-b-2 border-primary-600 text-primary-600 font-medium'
+                    : 'text-secondary-600 hover:text-secondary-900'}`}
+                >
+                  Details
+                </button>
+                <button
+                  onClick={() => setActiveTab('bidHistory')}
+                  className={`pb-3 px-1 ${activeTab === 'bidHistory'
+                    ? 'border-b-2 border-primary-600 text-primary-600 font-medium'
+                    : 'text-secondary-600 hover:text-secondary-900'}`}
+                >
+                  Bid History
+                </button>
+              </div>
+            </div>
+            
+            {/* Tab Content */}
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="mb-8"
+            >
+              {activeTab === 'details' && (
+                <div>
+                  {/* Description */}
+                  <div className="mb-6">
+                    <h2 className="text-lg font-bold text-secondary-900 mb-3">Description</h2>
+                    <p className="text-secondary-700">{gem.description}</p>
+                  </div>
+                  
+                  {/* Specifications */}
+                  <div className="mb-6">
+                    <h2 className="text-lg font-bold text-secondary-900 mb-3">Specifications</h2>
+                    <div className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-full">
+                            <Droplet className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-secondary-500">Color</p>
+                            <p className="font-medium text-secondary-900">{gem.color}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-amber-100 rounded-full">
+                            <Scale className="h-4 w-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-secondary-500">Weight</p>
+                            <p className="font-medium text-secondary-900">{gem.carat} carats</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-purple-100 rounded-full">
+                            <Hexagon className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-secondary-500">Shape</p>
+                            <p className="font-medium text-secondary-900">{gem.shape}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-green-100 rounded-full">
+                            <Eye className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-secondary-500">Clarity</p>
+                            <p className="font-medium text-secondary-900">{gem.clarity}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-red-100 rounded-full">
+                            <MapPin className="h-4 w-4 text-red-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-secondary-500">Origin</p>
+                            <p className="font-medium text-secondary-900">{gem.origin}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Certificate */}
+                      {gem.isCertified && (
+                        <div className="p-4 border-t border-secondary-200 bg-secondary-50">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 bg-green-100 rounded-full">
+                                <Certificate className="h-4 w-4 text-green-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-secondary-900">Certificate Available</p>
+                                <p className="text-xs text-secondary-600">
+                                  {gem.certificate.issuedBy} • {gem.certificate.id}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={handleViewCertificate}
+                            >
+                              View Certificate
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Seller Information */}
+                  <div>
+                    <h2 className="text-lg font-bold text-secondary-900 mb-3">Seller Information</h2>
+                    <div className="bg-white rounded-xl border border-secondary-200 p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-secondary-100 p-3 rounded-full">
+                            <Store className="h-5 w-5 text-secondary-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-secondary-900">{gem.seller.name}</p>
+                            <div className="flex items-center space-x-2">
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i}
+                                    className={`h-3 w-3 ${
+                                      i < Math.floor(gem.seller.rating) 
+                                        ? 'text-yellow-500 fill-yellow-500' 
+                                        : 'text-secondary-300'
+                                    }`} 
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-xs text-secondary-600">({gem.seller.rating})</span>
+                              {gem.seller.verified && (
+                                <span className="inline-flex items-center text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                  <CheckCircle className="h-3 w-3 mr-1" /> Verified Seller
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {}}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Contact
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {activeTab === 'bidHistory' && (
+                <div>
+                  <h2 className="text-lg font-bold text-secondary-900 mb-3">Bid History</h2>
+                  
+                  <div className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
+                    {bidHistory.length > 0 ? (
+                      <div>
+                        {bidHistory.map((bid) => (
+                          <BidHistoryItem key={bid.id} bid={bid} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center">
+                        <History className="h-12 w-12 text-secondary-400 mx-auto mb-3" />
+                        <h3 className="text-lg font-medium text-secondary-900 mb-1">No Bids Yet</h3>
+                        <p className="text-secondary-600 mb-4">Be the first to place a bid on this gem!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        </div>
+        
+        {/* Right Column: Bid Information */}
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-white rounded-xl border border-secondary-200 shadow-sm sticky top-6"
+          >
+            {/* Current Bid */}
+            <div className="p-6 border-b border-secondary-200">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-secondary-600">Current Bid</p>
+                {gem.verificationStatus === 'verified' && (
+                  <span className="inline-flex items-center text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                    <Shield className="h-3 w-3 mr-1" /> Verified
+                  </span>
+                )}
+              </div>
+              <h2 className="text-3xl font-bold text-secondary-900 mb-1">${gem.currentBid.toLocaleString()}</h2>
+              <p className="text-sm text-secondary-500">Starting Price: ${gem.startingPrice.toLocaleString()}</p>
+            </div>
+            
+            {/* Time Left */}
+            <div className="p-6 border-b border-secondary-200">
+              <p className="text-secondary-600 mb-2">Auction Ends In</p>
+              {renderTimeLeft()}
+              <p className="text-xs text-secondary-500 mt-2">
+                <Calendar className="h-3 w-3 inline mr-1" />
+                {new Date(gem.auctionEndTime).toLocaleString()}
+              </p>
+            </div>
+            
+            {/* Place Bid */}
+            <div className="p-6">
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Your Bid Amount
+                </label>
+                <div className="relative mt-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <DollarSign className="h-5 w-5 text-secondary-400" />
+                  </div>
+                  <input
+                    type="number"
+                    min={gem.minimumBid}
+                    step={10}
+                    value={bidAmount}
+                    onChange={(e) => handleBidAmountChange(parseInt(e.target.value))}
+                    className="pl-10 pr-4 py-3 w-full rounded-lg border border-secondary-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <p className="mt-2 text-sm text-secondary-500">
+                  Minimum bid: ${gem.minimumBid.toLocaleString()}
+                </p>
+              </div>
+              
+              <Button
+                onClick={handlePlaceBid}
+                disabled={bidAmount < gem.minimumBid}
+                className="w-full"
+              >
+                Place Bid
+              </Button>
+              
+              <div className="mt-4 p-3 bg-secondary-50 rounded-lg">
+                <p className="text-xs text-secondary-600">
+                  By placing a bid, you agree to our Terms of Service and commit to purchase the gem if you win the auction.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+      
+      {/* Bid Confirmation Modal */}
+      <BidConfirmModal
+        visible={bidConfirmVisible}
+        onClose={() => setBidConfirmVisible(false)}
+        onConfirm={handleConfirmBid}
+        bidAmount={bidAmount}
+        gemName={gem.name}
+      />
+      
+      {/* Certificate Modal */}
+      <CertificateModal
+        visible={certificateModalVisible}
+        onClose={() => setCertificateModalVisible(false)}
+        certificate={gem.certificate}
+      />
+    </Layout>
+  );
+};
+
+const MapPin: React.FC<{ className?: string }> = ({ className }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+    <circle cx="12" cy="10" r="3"></circle>
+  </svg>
+);
+
+const Star: React.FC<{ className?: string }> = ({ className }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+  </svg>
+);
+
+export default GemDetailsPage;

@@ -1,0 +1,47 @@
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+
+// Routes
+import AppRoutes from '@/routes/AppRoutes';
+import { AuthProvider } from '@/context/AuthContext';
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <AuthProvider>
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#fff',
+              color: '#1e293b',
+              border: '1px solid #e2e8f0',
+              borderRadius: '0.75rem',
+              padding: '1rem',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+        <AppRoutes />
+      </AuthProvider>
+    </Router>
+  );
+};
+
+export default App;
